@@ -1,8 +1,11 @@
+import json
+import pytz
+import datetime
 from django.http import JsonResponse
 from django.templatetags.static import static
 
-
-from .models import Product
+from star_burger.settings import TIME_ZONE
+from .models import Product, Order, OrderedItem
 
 
 def banners_list_api(request):
@@ -58,5 +61,25 @@ def product_list_api(request):
 
 
 def register_order(request):
-    # TODO это лишь заглушка
-    return JsonResponse({})
+    try:
+        timezone = pytz.timezone(TIME_ZONE)
+        cart_data = json.loads(request.body.decode())
+        cart = Order.objects.create(
+            firstname=cart_data["firstname"],
+            lastname=cart_data["lastname"],
+            address=cart_data["address"],
+            phonenumber=cart_data["phonenumber"],
+            ordertime=datetime.datetime.now(tz=timezone),
+        )
+        for product in cart_data["products"]:
+            ordered_item = Product.objects.get(pk=product["product"])
+            OrderedItem.objects.create(
+                cart=cart,
+                ordered_product=ordered_item,
+                quantity=product["quantity"],
+            )
+        return JsonResponse({})
+    except ValueError:
+        return JsonResponse({
+            'error': 'ValueError',
+        })

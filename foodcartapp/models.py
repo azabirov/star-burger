@@ -1,5 +1,6 @@
 from django.db import models
-from django.core.validators import MinValueValidator
+from django.core.validators import MinValueValidator, MaxValueValidator
+from phonenumber_field.modelfields import PhoneNumberField
 
 
 class Restaurant(models.Model):
@@ -121,3 +122,52 @@ class RestaurantMenuItem(models.Model):
 
     def __str__(self):
         return f"{self.restaurant.name} - {self.product.name}"
+
+
+class Order(models.Model):
+    firstname = models.CharField(
+        'имя',
+        max_length=63,
+    )
+    lastname = models.CharField(
+        'фамилия',
+        max_length=63,
+    )
+    address = models.CharField(
+        'адрес',
+        max_length=63,
+    )
+    phonenumber = PhoneNumberField(
+        'номер телефона',
+        db_index=True
+    )
+    ordertime = models.DateTimeField(
+        'время заказа',
+    )
+
+    class Meta:
+        verbose_name = 'заказ'
+        verbose_name_plural = 'заказы'
+
+    def __str__(self):
+        return f"[{self.ordertime.strftime('%Y-%m-%d %H:%M:%S %Z')}] {self.firstname} {self.lastname} - {self.phonenumber}"
+
+
+class OrderedItem(models.Model):
+    cart = models.ForeignKey(
+        Order,
+        on_delete=models.CASCADE,
+        related_name='ordered_item',
+    )
+    ordered_product = models.ForeignKey(
+        Product,
+        on_delete=models.CASCADE,
+        verbose_name='Заказанный продукт',
+    )
+    quantity = models.PositiveIntegerField(
+        'количество',
+        validators=[MaxValueValidator(50)],
+    )
+
+    def __str__(self):
+        return f"{self.cart} - {self.ordered_product} {self.quantity}"
