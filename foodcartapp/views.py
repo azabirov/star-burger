@@ -67,25 +67,31 @@ def product_list_api(request):
 def register_order(request):
     timezone = pytz.timezone(TIME_ZONE)
     cart_data = request.data
-    cartdatacheck = isinstance(cart_data["firstname"], str) and isinstance(cart_data["lastname"], str) \
-                    and isinstance(cart_data["address"], str) and isinstance(cart_data["phonenumber"], (str, int))\
-                    and isinstance(cart_data["products"], list) and cart_data["products"]
-    if cartdatacheck:
-        cart = Order.objects.create(
-            firstname=cart_data["firstname"],
-            lastname=cart_data["lastname"],
-            address=cart_data["address"],
-            phonenumber=cart_data["phonenumber"],
-            ordertime=datetime.datetime.now(tz=timezone),
-        )
-        for product in cart_data["products"]:
-            if isinstance(product["product"], int) and isinstance(product["quantity"], int):
-                ordered_item = Product.objects.get(pk=product["product"])
-                OrderedItem.objects.create(
-                    cart=cart,
-                    ordered_product=ordered_item,
-                    quantity=product["quantity"],
-                )
-        return Response()
+    try:
+        cartdatacheck = isinstance(cart_data["firstname"], str) and isinstance(cart_data["lastname"], str) \
+                        and isinstance(cart_data["address"], str) and isinstance(cart_data["phonenumber"], (str, int))\
+                        and isinstance(cart_data["products"], list) and cart_data["products"]\
+                        and cart_data["phonenumber"]
+        if cartdatacheck:
+            cart = Order.objects.create(
+                firstname=cart_data["firstname"],
+                lastname=cart_data["lastname"],
+                address=cart_data["address"],
+                phonenumber=cart_data["phonenumber"],
+                ordertime=datetime.datetime.now(tz=timezone),
+            )
+            for product in cart_data["products"]:
+                if isinstance(product["product"], int) and isinstance(product["quantity"], int):
+                    ordered_item = Product.objects.get(pk=product["product"])
+                    OrderedItem.objects.create(
+                        cart=cart,
+                        ordered_product=ordered_item,
+                        quantity=product["quantity"],
+                    )
+                else:
+                    return Response({"error": "POST data is false or corrupted"}, status=status.HTTP_400_BAD_REQUEST)
+            return Response()
+    except KeyError:
+        pass
     return Response({"error": "POST data is false or corrupted"}, status=status.HTTP_400_BAD_REQUEST)
 
