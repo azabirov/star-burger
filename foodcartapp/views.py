@@ -1,11 +1,14 @@
-import json
-import pytz
 import datetime
+import pytz
 from django.http import JsonResponse
 from django.templatetags.static import static
+from rest_framework import status
+from rest_framework.response import Response
 
 from star_burger.settings import TIME_ZONE
 from .models import Product, Order, OrderedItem
+
+from rest_framework.decorators import api_view
 
 
 def banners_list_api(request):
@@ -60,10 +63,14 @@ def product_list_api(request):
     })
 
 
+@api_view(['POST'])
 def register_order(request):
-    try:
-        timezone = pytz.timezone(TIME_ZONE)
-        cart_data = json.loads(request.body.decode())
+    timezone = pytz.timezone(TIME_ZONE)
+    cart_data = request.data
+    cartdatacheck = isinstance(cart_data["firstname"], str) and isinstance(cart_data["lastname"], str) \
+                    and isinstance(cart_data["address"], str) and isinstance(cart_data["phonenumber"], (str, int))\
+                    and isinstance(cart_data["products"], list) and cart_data["products"]
+    if cartdatacheck:
         cart = Order.objects.create(
             firstname=cart_data["firstname"],
             lastname=cart_data["lastname"],
@@ -72,14 +79,13 @@ def register_order(request):
             ordertime=datetime.datetime.now(tz=timezone),
         )
         for product in cart_data["products"]:
-            ordered_item = Product.objects.get(pk=product["product"])
-            OrderedItem.objects.create(
-                cart=cart,
-                ordered_product=ordered_item,
-                quantity=product["quantity"],
-            )
-        return JsonResponse({})
-    except ValueError:
-        return JsonResponse({
-            'error': 'ValueError',
-        })
+            if isinstance(product["product"], int) and isinstance(product["quantity"], int):
+                ordered_item = Product.objects.get(pk=product["product"])
+                OrderedItem.objects.create(
+                    cart=cart,
+                    ordered_product=ordered_item,
+                    quantity=product["quantity"],
+                )
+        return Response()
+    return Response({"error": "POST data is false or corrupted"}, status=status.HTTP_400_BAD_REQUEST)
+
