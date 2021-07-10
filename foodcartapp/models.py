@@ -159,7 +159,7 @@ class OrderedItem(models.Model):
         on_delete=models.CASCADE,
         related_name='ordered_item',
     )
-    ordered_product = models.ForeignKey(
+    product = models.ForeignKey(
         Product,
         on_delete=models.CASCADE,
         verbose_name='Заказанный продукт',
@@ -170,4 +170,4 @@ class OrderedItem(models.Model):
     )
 
     def __str__(self):
-        return f"{self.cart} - {self.ordered_product} {self.quantity}"
+        return f"{self.cart} - {self.product} {self.quantity}"
