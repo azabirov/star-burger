@@ -67,18 +67,18 @@ def product_list_api(request):
     })
 
 
-class CartDataSerializer(Serializer):
-    firstname = CharField()
-    lastname = CharField()
-    address = CharField()
-    phonenumber = CharField()
-    products = ListField(allow_empty=False)
-
-
 class OrderItemDataSerializer(ModelSerializer):
     class Meta:
         model = OrderedItem
         fields = ['product', 'quantity']
+
+
+class CartDataSerializer(ModelSerializer):
+    products = OrderItemDataSerializer(allow_empty=False, many=True, write_only=True)
+
+    class Meta:
+        model = Order
+        fields = ['firstname', 'lastname', 'address', 'phonenumber', 'products']
 
 
 @api_view(['POST'])
@@ -87,22 +87,19 @@ def register_order(request):
     cart_data = request.data
     serializer = CartDataSerializer(data=cart_data)
     serializer.is_valid(raise_exception=True)
-    for product in cart_data["products"]:
-        modelserializer = OrderItemDataSerializer(data=product)
-        modelserializer.is_valid(raise_exception=True)
-
     cart = Order.objects.create(
-        firstname=cart_data["firstname"],
-        lastname=cart_data["lastname"],
-        address=cart_data["address"],
-        phonenumber=cart_data["phonenumber"],
+        firstname=serializer.validated_data["firstname"],
+        lastname=serializer.validated_data["lastname"],
+        address=serializer.validated_data["address"],
+        phonenumber=serializer.validated_data["phonenumber"],
         ordertime=datetime.datetime.now(tz=timezone),
     )
-    for product in cart_data["products"]:
-        ordered_item = Product.objects.get(pk=product["product"])
+    for product_ in serializer.validated_data['products']:
+        ordered_item = product_["product"]
         OrderedItem.objects.create(
             cart=cart,
             product=ordered_item,
-            quantity=product["quantity"],
+            quantity=product_["quantity"],
         )
-    return Response()
+    return Response(serializer.data)
+
