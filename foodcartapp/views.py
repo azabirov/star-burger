@@ -1,13 +1,9 @@
 import datetime
 import pytz
-import rest_framework.fields
 from django.http import JsonResponse
 from django.templatetags.static import static
-from rest_framework import status
-from rest_framework.fields import CharField
-from rest_framework.fields import ListField
 from rest_framework.response import Response
-from rest_framework.serializers import Serializer, ModelSerializer
+from rest_framework.serializers import ModelSerializer
 
 from star_burger.settings import TIME_ZONE
 from .models import Product, Order, OrderedItem
