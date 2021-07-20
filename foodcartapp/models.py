@@ -139,7 +139,6 @@ class Order(models.Model):
     )
     phonenumber = PhoneNumberField(
         'номер телефона',
-        db_index=True
     )
     ordertime = models.DateTimeField(
         'время заказа',
