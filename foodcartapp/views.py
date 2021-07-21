@@ -1,5 +1,6 @@
 import datetime
 import pytz
+from django.db import transaction
 from django.http import JsonResponse
 from django.templatetags.static import static
 from rest_framework.response import Response
@@ -77,6 +78,7 @@ class CartDataSerializer(ModelSerializer):
         fields = ['firstname', 'lastname', 'address', 'phonenumber', 'products']
 
 
+@transaction.atomic
 @api_view(['POST'])
 def register_order(request):
     timezone = pytz.timezone(TIME_ZONE)
