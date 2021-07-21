@@ -167,6 +167,13 @@ class OrderedItem(models.Model):
         'количество',
         validators=[MaxValueValidator(50)],
     )
+    price = models.DecimalField(
+        'цена товара',
+        max_digits=9,
+        decimal_places=2,
+        validators=[MinValueValidator(0)],
+        null=True,
+    )
 
     def __str__(self):
         return f"{self.cart} - {self.product} {self.quantity}"

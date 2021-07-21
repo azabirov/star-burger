@@ -96,6 +96,7 @@ def register_order(request):
             cart=cart,
             product=ordered_item,
             quantity=product_["quantity"],
+            price=ordered_item.price*product_["quantity"],
         )
     return Response(serializer.data)
 
