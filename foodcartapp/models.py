@@ -125,6 +125,17 @@ class RestaurantMenuItem(models.Model):
 
 
 class Order(models.Model):
+    STATUS = (
+        ('processed', 'Обработанный'),
+        ('unprocessed', 'Необработанный'),
+    )
+    status = models.CharField(
+        'статус',
+        choices=STATUS,
+        max_length=64,
+        db_index=True,
+        default='unprocessed',
+    )
     firstname = models.CharField(
         'имя',
         max_length=63,
