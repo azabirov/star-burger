@@ -154,6 +154,11 @@ class Order(models.Model):
     ordertime = models.DateTimeField(
         'время заказа',
     )
+    calltime = models.DateTimeField(
+        'время звонка',
+        null=True,
+        blank=True,
+    )
     comment = models.TextField(
         'комментарий',
         max_length=256,
@@ -165,7 +170,7 @@ class Order(models.Model):
         verbose_name_plural = 'заказы'
 
     def __str__(self):
-        return f"[{self.ordertime.strftime('%Y-%m-%d %H:%M:%S %Z')}] {self.firstname} {self.lastname} - {self.phonenumber}"
+        return f"[{self.ordertime.strftime('%Y-%m-%d %H:%M:%S %Z')}] {self.get_status_display} {self.firstname} {self.lastname} - {self.phonenumber}"
 
 
 class OrderedItem(models.Model):
