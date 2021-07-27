@@ -154,6 +154,11 @@ class Order(models.Model):
     ordertime = models.DateTimeField(
         'время заказа',
     )
+    comment = models.TextField(
+        'комментарий',
+        max_length=256,
+        blank=True,
+    )
 
     class Meta:
         verbose_name = 'заказ'
