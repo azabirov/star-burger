@@ -4,12 +4,13 @@ from django.db import transaction
 from django.http import JsonResponse
 from django.templatetags.static import static
 from rest_framework.response import Response
-from rest_framework.serializers import ModelSerializer
-
+import star_burger.settings
+from coordinates.location_functions import \
+    get_available_restaurants, update_cart_restaurant_to_a_nearest_one
 from star_burger.settings import TIME_ZONE
 from .models import Product, Order, OrderedItem
-
 from rest_framework.decorators import api_view
+from .serializers import CartDataSerializer
 
 
 def banners_list_api(request):
@@ -64,20 +65,6 @@ def product_list_api(request):
     })
 
 
-class OrderItemDataSerializer(ModelSerializer):
-    class Meta:
-        model = OrderedItem
-        fields = ['product', 'quantity']
-
-
-class CartDataSerializer(ModelSerializer):
-    products = OrderItemDataSerializer(allow_empty=False, many=True, write_only=True)
-
-    class Meta:
-        model = Order
-        fields = ['firstname', 'lastname', 'address', 'phonenumber', 'products']
-
-
 @transaction.atomic
 @api_view(['POST'])
 def register_order(request):
@@ -92,13 +79,18 @@ def register_order(request):
         phonenumber=serializer.validated_data["phonenumber"],
         ordertime=datetime.datetime.now(tz=timezone),
     )
+    restaurants = []
     for product_ in serializer.validated_data['products']:
         ordered_item = product_["product"]
-        OrderedItem.objects.create(
+        item_order = OrderedItem.objects.create(
             cart=cart,
             product=ordered_item,
             quantity=product_["quantity"],
             price=ordered_item.price*product_["quantity"],
         )
+        restaurants_ = get_available_restaurants(ordered_item)
+        if not restaurants:
+            restaurants += restaurants_
+        restaurants = list(set(restaurants_) & set(restaurants))
+    update_cart_restaurant_to_a_nearest_one(restaurants, cart)
     return Response(serializer.data)
-

@@ -29,6 +29,7 @@ INSTALLED_APPS = [
     'debug_toolbar',
     'phonenumber_field',
     'rest_framework',
+    'coordinates.apps.CoordinatesConfig',
 ]
 
 MIDDLEWARE = [
@@ -116,11 +117,14 @@ USE_TZ = True
 STATIC_URL = '/static/'
 
 INTERNAL_IPS = [
-    '127.0.0.1'
+    '127.0.0.1',
+    'localhost'
 ]
-
 
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR, "assets"),
     os.path.join(BASE_DIR, "bundles"),
 ]
+
+API_KEY_YANDEX = env("API_KEY_YANDEX")
+

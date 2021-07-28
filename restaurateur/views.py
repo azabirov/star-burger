@@ -3,10 +3,9 @@ from django.shortcuts import redirect, render
 from django.views import View
 from django.urls import reverse_lazy
 from django.contrib.auth.decorators import user_passes_test
-from django.db.models import F, DecimalField, Sum
+from django.db.models import F, Sum
 from django.contrib.auth import authenticate, login
 from django.contrib.auth import views as auth_views
-
 
 from foodcartapp.models import Product, Restaurant, Order
 
@@ -99,5 +98,5 @@ def view_restaurants(request):
 def view_orders(request):
     return render(request, template_name='order_items.html', context={
         'order_items': Order.objects.annotate(
-            price=Sum(F('ordered_item__quantity')*F('ordered_item__product__price')))
-    })
+            price=Sum(F('ordered_item__quantity')*F('ordered_item__product__price'))),
+            })

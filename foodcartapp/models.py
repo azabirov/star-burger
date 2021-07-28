@@ -2,6 +2,8 @@ from django.db import models
 from django.core.validators import MinValueValidator, MaxValueValidator
 from phonenumber_field.modelfields import PhoneNumberField
 
+from coordinates.location_functions import get_coordinates, get_distance, get_available_restaurants_for_cart
+
 
 class Restaurant(models.Model):
     name = models.CharField(
@@ -18,6 +20,11 @@ class Restaurant(models.Model):
         max_length=50,
         blank=True,
     )
+
+    def findCoordinates(self):
+        return get_coordinates(self.address)
+
+    coordinates = property(findCoordinates)
 
     class Meta:
         verbose_name = 'ресторан'
@@ -126,15 +133,25 @@ class RestaurantMenuItem(models.Model):
 
 class Order(models.Model):
     STATUS = (
-        ('processed', 'Обработанный'),
         ('unprocessed', 'Необработанный'),
+        ('processed', 'Обработанный'),
     )
+    PAYMENT_CHOICES = (
+        ('cash', 'Наличностью'),
+        ('card', 'Электронно'),
+    )
+
     status = models.CharField(
         'статус',
         choices=STATUS,
         max_length=64,
-        db_index=True,
         default='unprocessed',
+    )
+    payment = models.CharField(
+        'способ оплаты',
+        choices=PAYMENT_CHOICES,
+        max_length=64,
+        default='cash',
     )
     firstname = models.CharField(
         'имя',
@@ -164,13 +181,37 @@ class Order(models.Model):
         max_length=256,
         blank=True,
     )
+    restaurant = models.ForeignKey(Restaurant, on_delete=models.CASCADE, null=True, blank=True, verbose_name='ресторан')
+
+    def findCoordinates(self):
+        return get_coordinates(self.address)
+
+    coordinates = property(findCoordinates)
+
+    def findDistanceToTheRestaurant(self):
+        if self.restaurant:
+            return round(get_distance(self.coordinates, self.restaurant.coordinates), 2)
+        return None
+
+    distance_to_restaurant = property(findDistanceToTheRestaurant)
+
+    def findDistanceToAllAvailableRestaurants(self):
+        restaurants = get_available_restaurants_for_cart(self)
+        self_coordinates = self.coordinates
+        if restaurants and self_coordinates.lng and self_coordinates.lat:
+            print(self.address)
+            print({restaurant:get_distance(self_coordinates, restaurant.coordinates) for restaurant in restaurants})
+            return {restaurant:get_distance(self_coordinates, restaurant.coordinates) for restaurant in restaurants}
+        return None
+
+    distances_to_restaurants = property(findDistanceToAllAvailableRestaurants)
+
+    def __str__(self):
+        return f"[{self.ordertime.strftime('%Y-%m-%d %H:%M:%S %Z')}] {self.status} {self.firstname} {self.lastname} - {self.phonenumber}"
 
     class Meta:
         verbose_name = 'заказ'
         verbose_name_plural = 'заказы'
-
-    def __str__(self):
-        return f"[{self.ordertime.strftime('%Y-%m-%d %H:%M:%S %Z')}] {self.status} {self.firstname} {self.lastname} - {self.phonenumber}"
 
 
 class OrderedItem(models.Model):
@@ -182,7 +223,7 @@ class OrderedItem(models.Model):
     product = models.ForeignKey(
         Product,
         on_delete=models.CASCADE,
-        verbose_name='Заказанный продукт',
+        verbose_name='заказанный продукт',
     )
     quantity = models.PositiveIntegerField(
         'количество',

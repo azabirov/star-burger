@@ -131,3 +131,5 @@ class OrderAdmin(admin.ModelAdmin):
     inlines = [
         OrderedItemInline
     ]
+
+
