@@ -10,17 +10,16 @@ api_key = star_burger.settings.API_KEY_YANDEX
 
 
 def get_coordinates(address_):
-    try:
-        coord = Coordinates.objects.get(
-            address=address_,
-        )
-    except Coordinates.DoesNotExist:
-        coords = fetch_coordinates(api_key, address_)
-        coord, created = Coordinates.objects.get_or_create(
-            address=address_,
-            lng=coords[0],
-            lat=coords[1],
-        )
+    coord, created = Coordinates.objects.get_or_create(
+        address=address_,
+    )
+    if created:
+        try:
+            coords = fetch_coordinates(api_key, address_)
+            coord.lng, coord.lat = coords
+            coord.save()
+        except IndexError:
+            pass
     return coord
 
 
