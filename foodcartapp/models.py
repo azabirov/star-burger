@@ -189,8 +189,9 @@ class Order(models.Model):
     coordinates = property(findCoordinates)
 
     def findDistanceToTheRestaurant(self):
-        if self.restaurant:
-            return round(get_distance(self.coordinates, self.restaurant.coordinates), 2)
+        self_coordinates = self.coordinates
+        if self.restaurant and self_coordinates.lng:
+            return round(get_distance(self_coordinates, self.restaurant.coordinates), 2)
         return None
 
     distance_to_restaurant = property(findDistanceToTheRestaurant)
@@ -198,10 +199,9 @@ class Order(models.Model):
     def findDistanceToAllAvailableRestaurants(self):
         restaurants = get_available_restaurants_for_cart(self)
         self_coordinates = self.coordinates
-        if restaurants and self_coordinates.lng and self_coordinates.lat:
-            print(self.address)
-            print({restaurant:get_distance(self_coordinates, restaurant.coordinates) for restaurant in restaurants})
-            return {restaurant:get_distance(self_coordinates, restaurant.coordinates) for restaurant in restaurants}
+        if restaurants:
+            restaurants_ = {restaurant:round(get_distance(self_coordinates, restaurant.coordinates), 2) if self_coordinates.lng else None for restaurant in restaurants}
+            return dict(sorted(restaurants_.items(), key=lambda x: (x[1] is None, x[1])))
         return None
 
     distances_to_restaurants = property(findDistanceToAllAvailableRestaurants)

@@ -34,14 +34,28 @@
         <td>{{ item.firstname}} {{ item.lastname }}</td>
         <td>{{ item.phonenumber }}</td>
         <td>{{ item.address }}</td>
-        <td>{{ item.comment }} </td>
+        <td><details>{{ item.comment }}</details></td>
         <td>
           <details>
-              {% if item.restaurant %}
-              <p>• {{ item.restaurant }} - {{ item.distance_to_restaurant }} км.</p>
+            {% if item.restaurant %}
+              <p><b>• {{ item.restaurant }} -
+                {% if item.coordinates.lng %}
+                  {{ item.distance_to_restaurant }} км.
+                {% else %}
+                  Нет данных
+                {% endif%}
+              </b></p>
+            {% else %}
+              <p><b>Нет выбранного ресторана.</b></p>
+            {% endif %}
+              <hr>
+            {% for restaurant, value in item.distances_to_restaurants.items %}
+              {% if value %}
+                <p>• {{ restaurant }} - {{ value }} км.</p>
               {% else %}
-              <p>Нет выбранного ресторана.</p>
+                <p>• {{ restaurant }} - Нет данных</p>
               {% endif %}
+            {% endfor %}
           </details>
         </td>
         <td><a href='{% url "admin:foodcartapp_order_change" object_id=item.id %}?next={{ request.path|urlencode }}'>Редактировать</a></td>
