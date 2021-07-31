@@ -21,10 +21,10 @@ class Restaurant(models.Model):
         blank=True,
     )
 
-    def findCoordinates(self):
+    def find_coordinates(self):
         return get_coordinates(self.address)
 
-    coordinates = property(findCoordinates)
+    coordinates = property(find_coordinates)
 
     class Meta:
         verbose_name = 'ресторан'
@@ -87,7 +87,6 @@ class Product(models.Model):
     )
     description = models.TextField(
         'описание',
-        max_length=200,
         blank=True,
     )
 
@@ -146,20 +145,22 @@ class Order(models.Model):
         choices=STATUS,
         max_length=64,
         default='unprocessed',
+        db_index=True,
     )
     payment = models.CharField(
         'способ оплаты',
         choices=PAYMENT_CHOICES,
         max_length=64,
         default='cash',
+        db_index=True,
     )
     firstname = models.CharField(
         'имя',
-        max_length=63,
+        max_length=100,
     )
     lastname = models.CharField(
         'фамилия',
-        max_length=63,
+        max_length=100,
     )
     address = models.CharField(
         'адрес',
@@ -167,36 +168,46 @@ class Order(models.Model):
     )
     phonenumber = PhoneNumberField(
         'номер телефона',
+        db_index=True,
     )
     ordertime = models.DateTimeField(
         'время заказа',
+        db_index=True,
     )
     calltime = models.DateTimeField(
         'время звонка',
         null=True,
         blank=True,
+        db_index=True,
     )
     comment = models.TextField(
         'комментарий',
         max_length=256,
         blank=True,
     )
-    restaurant = models.ForeignKey(Restaurant, on_delete=models.CASCADE, null=True, blank=True, verbose_name='ресторан')
+    restaurant = models.ForeignKey(
+        Restaurant,
+        related_name="orders",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        verbose_name='ресторан'
+    )
 
-    def findCoordinates(self):
+    def find_coordinates(self):
         return get_coordinates(self.address)
 
-    coordinates = property(findCoordinates)
+    coordinates = property(find_coordinates)
 
-    def findDistanceToTheRestaurant(self):
+    def find_distance_to_the_restaurant(self):
         self_coordinates = self.coordinates
         if self.restaurant and self_coordinates.lng:
             return round(get_distance(self_coordinates, self.restaurant.coordinates), 2)
         return None
 
-    distance_to_restaurant = property(findDistanceToTheRestaurant)
+    distance_to_restaurant = property(find_distance_to_the_restaurant)
 
-    def findDistanceToAllAvailableRestaurants(self):
+    def find_distance_to_all_available_restaurants(self):
         restaurants = get_available_restaurants_for_cart(self)
         self_coordinates = self.coordinates
         if restaurants:
@@ -204,7 +215,7 @@ class Order(models.Model):
             return dict(sorted(restaurants_.items(), key=lambda x: (x[1] is None, x[1])))
         return None
 
-    distances_to_restaurants = property(findDistanceToAllAvailableRestaurants)
+    distances_to_restaurants = property(find_distance_to_all_available_restaurants)
 
     def __str__(self):
         return f"[{self.ordertime.strftime('%Y-%m-%d %H:%M:%S %Z')}] {self.status} {self.firstname} {self.lastname} - {self.phonenumber}"
@@ -215,7 +226,7 @@ class Order(models.Model):
 
 
 class OrderedItem(models.Model):
-    cart = models.ForeignKey(
+    order = models.ForeignKey(
         Order,
         on_delete=models.CASCADE,
         related_name='ordered_item',
@@ -224,18 +235,18 @@ class OrderedItem(models.Model):
         Product,
         on_delete=models.CASCADE,
         verbose_name='заказанный продукт',
+        related_name='ordered_item'
     )
     quantity = models.PositiveIntegerField(
         'количество',
-        validators=[MaxValueValidator(50)],
+        validators=[MinValueValidator(1)],
     )
     price = models.DecimalField(
         'цена товара',
         max_digits=9,
         decimal_places=2,
         validators=[MinValueValidator(0)],
-        null=True,
     )
 
     def __str__(self):
-        return f"{self.cart} - {self.product} {self.quantity}"
+        return f"{self.order} - {self.product} {self.quantity}"
