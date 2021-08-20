@@ -28,7 +28,10 @@ def get_available_restaurants(ordered_item):
 
 
 def get_distance(order_coord, rest_coord):
-    return distance.distance((rest_coord.lng, rest_coord.lat), (order_coord.lng, order_coord.lat)).km
+    if order_coord.lng and rest_coord.lng and order_coord.lat and rest_coord.lat:
+        return distance.distance((rest_coord.lng, rest_coord.lat), (order_coord.lng, order_coord.lat)).km
+    else:
+        return None
 
 
 def get_distance_between_addresses(cart_address, restaurant_address):
