@@ -9,13 +9,13 @@ from .models import Coordinates
 api_key = star_burger.settings.API_KEY_YANDEX
 
 
-def get_coordinates(address_):
+def get_coordinates(address):
     coord, created = Coordinates.objects.get_or_create(
-        address=address_,
+        address=address,
     )
     if created:
         try:
-            coords = fetch_coordinates(api_key, address_)
+            coords = fetch_coordinates(api_key, address)
             coord.lng, coord.lat = coords
             coord.save()
         except IndexError:
@@ -44,25 +44,25 @@ def get_distance_between_addresses(cart_address, restaurant_address):
     return get_distance(order_coord, rest_coord)
 
 
-def get_distances_between_restaurants_and_buyer(restaurants_, cart):
-    distances_ = {}
-    order_coord = cart.coordinates
-    for restaurant_ in restaurants_:
-        rest_coord = restaurant_.coordinates
-        distance_ = get_distance(order_coord, rest_coord)
-        distances_[restaurant_] = distance_
-    return distances_
+def get_distances_between_restaurants_and_buyer(restaurants, order):
+    distances = {}
+    order_coord = order.coordinates
+    for restaurant in restaurants:
+        rest_coord = restaurant.coordinates
+        distance = get_distance(order_coord, rest_coord)
+        distances[restaurant] = distance
+    return distances
 
 
-def update_cart_restaurant_to_a_nearest_one(restaurants, cart):
-    distances = get_distances_between_restaurants_and_buyer(restaurants, cart)
-    cart.restaurant = sorted(distances, key=distances.get)[0]
-    cart.save()
+def update_cart_restaurant_to_a_nearest_one(restaurants, order):
+    distances = get_distances_between_restaurants_and_buyer(restaurants, order)
+    order.restaurant = sorted(distances, key=distances.get)[0]
+    order.save()
 
 
-def get_available_restaurants_for_cart(cart):
+def get_available_restaurants_for_cart(order):
     restaurants = []
-    for ordereditem in cart.ordered_item.all():
+    for ordereditem in order.ordered_item.all():
         restaurants_s = []
         menu_items = foodcartapp.models.RestaurantMenuItem.objects.filter(
             product=ordereditem.product,
