@@ -77,14 +77,14 @@ def register_order(request):
     )
     restaurants = []
     for product_ in serializer.validated_data['products']:
-        ordered_item = product_["product"]
+        ordered_product = product_["product"]
         item_order = OrderedItem.objects.create(
             order=order_,
-            product=ordered_item,
+            product=ordered_product,
             quantity=product_["quantity"],
-            price=ordered_item.price*product_["quantity"],
+            price=ordered_product.price*product_["quantity"],
         )
-        restaurants_ = get_available_restaurants(ordered_item)
+        restaurants_ = get_available_restaurants(ordered_product)
         if not restaurants:
             restaurants += restaurants_
         restaurants = list(set(restaurants_) & set(restaurants))
