@@ -72,7 +72,7 @@ def register_order(request):
     cart_data = request.data
     serializer = CartDataSerializer(data=cart_data)
     serializer.is_valid(raise_exception=True)
-    cart = Order.objects.create(
+    order_ = Order.objects.create(
         firstname=serializer.validated_data["firstname"],
         lastname=serializer.validated_data["lastname"],
         address=serializer.validated_data["address"],
@@ -83,7 +83,7 @@ def register_order(request):
     for product_ in serializer.validated_data['products']:
         ordered_item = product_["product"]
         item_order = OrderedItem.objects.create(
-            cart=cart,
+            order=order_,
             product=ordered_item,
             quantity=product_["quantity"],
             price=ordered_item.price*product_["quantity"],
@@ -92,5 +92,5 @@ def register_order(request):
         if not restaurants:
             restaurants += restaurants_
         restaurants = list(set(restaurants_) & set(restaurants))
-    update_cart_restaurant_to_a_nearest_one(restaurants, cart)
+    update_cart_restaurant_to_a_nearest_one(restaurants, order_)
     return Response(serializer.data)
