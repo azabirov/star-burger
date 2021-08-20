@@ -62,7 +62,7 @@ def update_cart_restaurant_to_a_nearest_one(restaurants, order):
 
 def get_available_restaurants_for_cart(order):
     restaurants = []
-    for ordereditem in order.ordered_item.all():
+    for ordereditem in order.ordered_items.all():
         restaurants_s = []
         menu_items = foodcartapp.models.RestaurantMenuItem.objects.filter(
             product=ordereditem.product,
