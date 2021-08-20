@@ -229,6 +229,7 @@ class OrderedItem(models.Model):
     order = models.ForeignKey(
         Order,
         on_delete=models.CASCADE,
+        verbose_name='заказ',
         related_name='ordered_items',
     )
     product = models.ForeignKey(
