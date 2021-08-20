@@ -1,3 +1,5 @@
+from contextlib import suppress
+
 import foodcartapp
 import star_burger.settings
 from .fetch_coordinates import fetch_coordinates
@@ -14,12 +16,10 @@ def get_coordinates(address):
         address=address,
     )
     if created:
-        try:
+        with suppress(IndexError):
             coords = fetch_coordinates(api_key, address)
             coord.lng, coord.lat = coords
             coord.save()
-        except IndexError:
-            pass
     return coord
 
 
