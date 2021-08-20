@@ -151,7 +151,7 @@ class Order(models.Model):
         'способ оплаты',
         choices=PAYMENT_CHOICES,
         max_length=64,
-        default='cash',
+        blank=True,
         db_index=True,
     )
     firstname = models.CharField(
