@@ -24,8 +24,7 @@ def get_coordinates(address):
 
 
 def get_available_restaurants(ordered_item):
-    menu_items = foodcartapp.models.RestaurantMenuItem.objects.filter(product=ordered_item, availability=True)
-    return {menu_item.restaurant for menu_item in menu_items}
+    return foodcartapp.models.RestaurantMenuItem.objects.filter(product=ordered_item, availability=True).values_list('restaurant', flat=True, distinct=True)
 
 
 def get_distance(order_coord, rest_coord):
