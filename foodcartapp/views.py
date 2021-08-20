@@ -1,13 +1,10 @@
-import datetime
-import pytz
 from django.db import transaction
 from django.http import JsonResponse
 from django.templatetags.static import static
+from django.utils import timezone
 from rest_framework.response import Response
-import star_burger.settings
 from coordinates.location_functions import \
     get_available_restaurants, update_cart_restaurant_to_a_nearest_one
-from star_burger.settings import TIME_ZONE
 from .models import Product, Order, OrderedItem
 from rest_framework.decorators import api_view
 from .serializers import CartDataSerializer
@@ -68,7 +65,6 @@ def product_list_api(request):
 @transaction.atomic
 @api_view(['POST'])
 def register_order(request):
-    timezone = pytz.timezone(TIME_ZONE)
     cart_data = request.data
     serializer = CartDataSerializer(data=cart_data)
     serializer.is_valid(raise_exception=True)
@@ -77,7 +73,7 @@ def register_order(request):
         lastname=serializer.validated_data["lastname"],
         address=serializer.validated_data["address"],
         phonenumber=serializer.validated_data["phonenumber"],
-        ordertime=datetime.datetime.now(tz=timezone),
+        ordertime=timezone.now(),
     )
     restaurants = []
     for product_ in serializer.validated_data['products']:
