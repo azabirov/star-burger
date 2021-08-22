@@ -3,8 +3,6 @@ from django.http import JsonResponse
 from django.templatetags.static import static
 from django.utils import timezone
 from rest_framework.response import Response
-from coordinates.location_functions import \
-    get_available_restaurants, update_cart_restaurant_to_a_nearest_one
 from .models import Product, Order, OrderedItem
 from rest_framework.decorators import api_view
 from .serializers import CartDataSerializer

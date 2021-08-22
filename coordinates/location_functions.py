@@ -40,21 +40,6 @@ def get_distance_between_addresses(cart_address, restaurant_address):
     return get_distance(order_coord, rest_coord)
 
 
-def get_distances_between_restaurants_and_buyer(restaurants, order):
-    distances = {}
-    order_coord = order.coordinates
-    for restaurant in restaurants:
-        rest_coord = restaurant.coordinates
-        distance = get_distance(order_coord, rest_coord)
-        distances[restaurant] = distance
-    return distances
-
-
-def update_cart_restaurant_to_a_nearest_one(restaurants, order):
-    distances = get_distances_between_restaurants_and_buyer(restaurants, order)
-    order.restaurant = sorted(distances, key=distances.get)[0]
-    order.save()
-
 
 def get_available_restaurants_for_cart(order):
     restaurants = []
