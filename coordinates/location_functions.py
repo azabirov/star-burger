@@ -1,14 +1,14 @@
 from contextlib import suppress
 
 import foodcartapp
-import star_burger.settings
+from django.conf import settings
 from .fetch_coordinates import fetch_coordinates
 
 from geopy import distance
 
 from .models import Coordinates
 
-api_key = star_burger.settings.API_KEY_YANDEX
+api_key = settings.API_KEY_YANDEX
 
 
 def get_coordinates(address):
